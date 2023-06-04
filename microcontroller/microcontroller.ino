@@ -1,7 +1,7 @@
 #include <SoftwareSerial.h>
 
-#define TX 2
-#define RX 3
+#define TX 2  // Connect to RX of ESP8266
+#define RX 3  // Connect to TX of ESP8266
 
 const int InputPin = 8;
 
