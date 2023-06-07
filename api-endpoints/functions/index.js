@@ -1,19 +1,37 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * const {onCall} = require("firebase-functions/v2/https");
- * const {onDocumentWritten} = require("firebase-functions/v2/firestore");
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
+const functions = require('firebase-functions');
+const { defineSecret } = require('firebase-functions/params');
+const logger = require('firebase-functions/logger');
+const admin = require('firebase-admin');
+const axios = require('axios');
 
-const {onRequest} = require("firebase-functions/v2/https");
-const logger = require("firebase-functions/logger");
+admin.initializeApp();
 
-// Create and deploy your first functions
-// https://firebase.google.com/docs/functions/get-started
+const FIREBASE_API_KEY = defineSecret('FIREBASE_API_KEY');
 
-// exports.helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+exports.receiveMessage = functions
+  .runWith({ secrets: [FIREBASE_API_KEY] })
+  .https.onRequest(async (request, response) => {
+    const { email, password, payload } = request.body;
+    const signInEndpoint = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY.value()}`;
+
+    try {
+      const signInPayload = { email, password, returnSecureToken: true };
+      await axios.post(signInEndpoint, signInPayload, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    } catch (error) {
+      return response.status(403).end();
+    }
+
+    try {
+      const doc = await admin.firestore().collection('messages').add(payload);
+      logger.info(`New message stored: ${doc.id}`);
+      response.status(200).end();
+    } catch (error) {
+      return response.status(500).end();
+    }
+
+    return response.status(200).end();
+  });
