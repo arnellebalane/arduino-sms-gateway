@@ -25,7 +25,7 @@ void loop() {
     message.trim();
 
     if (message.length() > 0) {
-        Serial.println(">>> " + message);
+        Serial.println("[WIFI] >>> " + message);
 
         ensureNetworkConnection();
 
@@ -34,14 +34,13 @@ void loop() {
         http.addHeader("Authorization", getAuthorizationHeader());
         http.addHeader("Content-Type", "application/json");
 
-        String payload = "{\"input\":\"" + message + "\"}";
-        int httpCode = http.POST(payload);
+        int httpCode = http.POST(message);
 
         if (httpCode == HTTP_CODE_OK) {
             String response = http.getString();
-            Serial.println("<<< " + response);
+            Serial.println("[WIFI] <<< " + response);
         } else {
-            Serial.println("Request failed: " + http.errorToString(httpCode));
+            Serial.println("[WIFI] Request failed: " + http.errorToString(httpCode));
         }
 
         http.end();

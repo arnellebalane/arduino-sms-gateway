@@ -13,10 +13,12 @@ void setup() {
 }
 
 void loop() {
+  // TODO: This message should be coming from the GSM module
   String message = Serial.readStringUntil('\n');
+  message.trim();
 
-  if (message) {
+  if (message.length() > 0) {
+    String payload = "{\"message\":\"" + message + "\"}";
     esp8266.println(message);
-    delay(1000);
   }
 }
