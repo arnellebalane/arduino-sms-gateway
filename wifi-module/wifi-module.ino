@@ -66,7 +66,6 @@ void ensureNetworkConnection() {
     }
 }
 
-
 // Sets the system time via NTP, as required for x.509 validation
 // https://github.com/esp8266/Arduino/blob/master/libraries/ESP8266WiFi/examples/BearSSL_CertStore/BearSSL_CertStore.ino
 void setClock() {

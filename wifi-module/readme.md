@@ -13,16 +13,16 @@
 
 ## Define variables
 
-In [`wifi-module.ino`](wifi-module.ino), define the following values:
+Copy the `secrets.example.h` file into `secrets.h` and define the following variables:
 
 1. `SSID` and `PASSWORD` with the WiFi network name and password
 1. `URL` with the URL where the data will be sent to
-1. `FINGERPRINT` with the SSL certificate SHA-1 fingerprint of the URL where the data will be sent to
-   - In Google Chrome, click on the lock icon in the URL bar
-   - Select **Connection is secure**
-   - Select **Certificate is valid**
-   - In the popup that opens, copy the value of the **SHA-1 Fingerprint** field
-     ![](sha1-fingerprint.png)
+1. `API_USERNAME` and `API_PASSWORD` with the credentials to use to authenticate to `URL`
+1. `CA_CERTIFICATE` with the root CA certificate for `URL`, which can be obtained by running this command:
+
+   ```bash
+   openssl s_client -connect <REPLACE_WITH_URL>:443 -showcerts
+   ```
 
 ## Upload code to ESP8266 module
 
