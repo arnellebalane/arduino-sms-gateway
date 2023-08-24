@@ -13,8 +13,10 @@ void setup() {
 }
 
 void loop() {
-  if (digitalRead(InputPin) == HIGH) {
-    esp8266.println("send request");
+  String message = Serial.readStringUntil('\n');
+
+  if (message) {
+    esp8266.println(message);
     delay(1000);
   }
 }

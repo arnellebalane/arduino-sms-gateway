@@ -1,19 +1,22 @@
+#include <time.h>
+#include <TZ.h>
 #include <Base64.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 #include <WiFiClientSecureBearSSL.h>
+#include <BearSSLHelpers.h>
 
-#define SSID ""
-#define PASSWORD ""
+#include "secrets.h"
 
-#define URL ""
-#define FINGERPRINT ""
-
-const String API_USERNAME = "";
-const String API_PASSWORD = "";
+BearSSL::WiFiClientSecure client;
+BearSSL::X509List trustedRoots;
 
 void setup() {
     Serial.begin(115200);
+
+    trustedRoots.append(CA_CERTIFICATE);
+    client.setTrustAnchors(&trustedRoots);
+
     ensureNetworkConnection();
 }
 
@@ -25,12 +28,11 @@ void loop() {
         Serial.println(">>> " + message);
 
         ensureNetworkConnection();
-        WiFiClientSecure client;
-        client.setFingerprint(FINGERPRINT);
 
         HTTPClient http;
         http.begin(client, URL);
         http.addHeader("Authorization", getAuthorizationHeader());
+        http.addHeader("Content-Type", "application/json");
 
         String payload = "{\"input\":\"" + message + "\"}";
         int httpCode = http.POST(payload);
@@ -59,7 +61,33 @@ void ensureNetworkConnection() {
 
         Serial.print("IP address: ");
         Serial.println(WiFi.localIP());
+
+        setClock();
     }
+}
+
+
+// Sets the system time via NTP, as required for x.509 validation
+// https://github.com/esp8266/Arduino/blob/master/libraries/ESP8266WiFi/examples/BearSSL_CertStore/BearSSL_CertStore.ino
+void setClock() {
+    configTzTime(TZ_America_Vancouver, "pool.ntp.org", "time.nist.gov");
+
+    Serial.print("Waiting for NTP time sync");
+    time_t now = time(nullptr);
+    while (now < 8 * 3600 * 2) {
+        delay(250);
+        Serial.print(".");
+        now = time(nullptr);
+    }
+    Serial.println();
+
+    struct tm timeinfo;
+    gmtime_r(&now, &timeinfo);
+    Serial.print("Current time (UTC): ");
+    Serial.println(asctime(&timeinfo));
+    localtime_r(&now, &timeinfo);
+    Serial.print("Current time (Local): ");
+    Serial.println(asctime(&timeinfo));
 }
 
 String getAuthorizationHeader() {
